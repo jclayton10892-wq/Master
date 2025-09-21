@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scenic Roots • Field App v5 (All-in-One)</title>
+  <link rel="icon" href="favicon.png">
+  <style>
+    :root { --brand:#0b6c3e; --brand2:#143b2a; --bg:#f5f7f6; --card:#ffffff; --muted:#6b7280; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;background:var(--bg);color:#111}
+    header{position:sticky;top:0;background:linear-gradient(90deg,var(--brand),var(--brand2));color:#fff;padding:12px 16px;z-index:2;display:flex;align-items:center;justify-content:space-between}
+    header h1{margin:0;font-size:18px;display:flex;gap:10px;align-items:center}
+    header small{opacity:.85;font-weight:500}
+    .container{padding:16px;max-width:1080px;margin:0 auto}
+    nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    nav.tabs button{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:8px 12px;cursor:pointer}
+    nav.tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .card{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin:12px 0;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .row>div{flex:1;min-width:220px}
+    label{display:block;font-size:12px;color:var(--muted);margin:6px 0 4px}
+    input,select,textarea{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:10px;background:#fff}
+    textarea{min-height:80px}
+    .btn{display:inline-block;border:1px solid var(--brand);color:#fff;background:var(--brand);padding:10px 14px;border-radius:10px;cursor:pointer}
+    .btn.secondary{background:#fff;color:var(--brand)}
+    .btn.warn{background:#b91c1c;border-color:#b91c1c}
+    .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+    .task{display:flex;align-items:center;gap:10px;padding:8px;border:1px solid #e5e7eb;border-radius:10px;background:#fafafa}
+    .timer{font-variant-numeric:tabular-nums;font-weight:700}
+    .mono{font-variant-numeric:tabular-nums}
+    .sig-pad{border:1px dashed #94a3b8;border-radius:8px;touch-action:none;background:#fff}
+    .hidden{display:none}
+    .no-print{}
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #e5e7eb;padding:8px;text-align:left}
+    @media print {
+      header, nav, .no-print { display:none !important; }
+      body { background:#fff }
+      .card { border:none; box-shadow:none; padding:0; margin:0 }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌲 Scenic Roots <small>Field App v5 — All-in-One</small></h1>
+    <div>
+      <label class="pill no-print">
+        <input id="clientMode" type="checkbox" onchange="toggleClientMode()" style="margin-right:6px"> Client Mode
+      </label>
+    </div>
+  </header>
+
+  <div class="container">
+    <nav class="tabs no-print" id="tabs"></nav>
+
+    <!-- CRM -->
+    <section id="tab-crm" class="tab card">
+      <h2>👥 CRM — Clients & Sites</h2>
+      <div class="row">
+        <div><label>Client Name</label><input id="cName" placeholder="Jane Doe / HOA"></div>
+        <div><label>Phone</label><input id="cPhone" placeholder="615-000-0000"></div>
+        <div><label>Email</label><input id="cEmail" placeholder="name@email.com"></div>
+      </div>
+      <div class="row">
+        <div><label>Property Address</label><input id="cAddress" placeholder="123 Main St, Dickson, TN"></div>
+        <div><label>Notes</label><input id="cNotes" placeholder="Gates, pets, preferences..."></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="addClient()">Add Client</button>
+        <button class="btn secondary" onclick="clearClientForm()">Clear</button>
+      </div>
+      <h3 style="margin-top:14px">Clients</h3>
+      <div id="clientList" class="grid"></div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section id="tab-schedule" class="tab card hidden">
+      <h2>📅 Today’s Schedule</h2>
+      <div class="row">
+        <div><label>Client / Job Name</label><input id="jobName" placeholder="e.g., Wyburn Downs – Front Entrance"></div>
+        <div><label>Address</label><input id="jobAddress" placeholder="e.g., 123 Main St, Dickson, TN"></div>
+      </div>
+      <div class="row">
+        <div><label>Service Type</label>
+          <select id="jobType">
+            <option value="mow">Mowing Visit</option>
+            <option value="landscape">Landscape Install</option>
+            <option value="drainage">Drainage / Grading</option>
+            <option value="cleanup">Leaf / Debris Cleanup</option>
+          </select>
+        </div>
+        <div><label>Assigned Crew (comma names)</label><input id="jobCrew" placeholder="e.g., Jay, Josh, Kevin"></div>
+        <div><label>Status</label>
+          <select id="jobStatus">
+            <option value="scheduled">Scheduled</option>
+            <option value="in_progress">In Progress</option>
+            <option value="paused">Paused</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+      </div>
+      <label>Notes / Hazards</label>
+      <textarea id="jobNotes" placeholder="Gate codes, client preferences, hazards..."></textarea>
+      <div class="row">
+        <div><label>Weather / Conditions</label><input id="jobWeather" placeholder="e.g., 82°F, sunny, damp turf"></div>
+        <div><label>Start Time (optional)</label><input id="jobStart" type="datetime-local"></div>
+        <div><label>Finish Time (optional)</label><input id="jobFinish" type="datetime-local"></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="addJob()">Add to Today</button>
+        <button class="btn secondary" onclick="clearJobForm()">Clear</button>
+        <button class="btn secondary" onclick="addSample()">Quick Demo Jobs</button>
+      </div>
+
+      <h3 style="margin-top:18px">Jobs for <span id="todayLabel"></span></h3>
+      <div id="jobsList" class="grid"></div>
+    </section>
+
+    <!-- JOB -->
+    <section id="tab-job" class="tab card hidden">
+      <h2>🧰 Job Details</h2>
+      <div id="activeJobContainer"></div>
+    </section>
+
+    <!-- MATERIALS -->
+    <section id="tab-materials" class="tab card hidden">
+      <h2>📦 Material Calculator & Pick List</h2>
+      <div class="row">
+        <div><label>Area (sq ft)</label><input id="matArea" type="number" placeholder="e.g., 600"></div>
+        <div><label>Depth (inches)</label><input id="matDepth" type="number" placeholder="e.g., 3"></div>
+        <div><label>Material</label>
+          <select id="matType">
+            <option value="mulch" selected>Mulch (yd³)</option>
+            <option value="topsoil">Topsoil (yd³)</option>
+            <option value="stone">#57 Stone (yd³)</option>
+            <option value="riprap">Riprap (yd³)</option>
+            <option value="sand">Sand (yd³)</option>
+            <option value="sod">Sod (sq ft)</option>
+          </select>
+        </div>
+        <div><label>Price / unit</label><input id="matPrice" type="number" placeholder="e.g., 80"></div>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="calcMaterial()">Calculate</button>
+        <button class="btn secondary" onclick="addToPickList()">Add to Pick List</button>
+        <span id="matResult" class="pill"></span>
+      </div>
+      <h3>🧾 Purchase List</h3>
+      <div id="pickList"></div>
+      <div style="margin-top:8px">
+        <button class="btn" onclick="exportPickList()">Export Pick List CSV</button>
+        <button class="btn warn" onclick="clearPickList()">Clear Pick List</button>
+      </div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section id="tab-photos" class="tab card hidden">
+      <h2>📸 Photos & Signature</h2>
+      <div id="photoJobPicker"></div>
+      <div class="card">
+        <label>Upload Photo(s)</label>
+        <input id="photoInput" type="file" accept="image/*" multiple>
+        <div style="margin-top:10px">
+          <button class="btn" onclick="savePhotos()">Attach to Job</button>
+        </div>
+      </div>
+      <div id="photoGallery" class="grid"></div>
+
+      <h3>🖊️ Client Signature for Active Job</h3>
+      <canvas id="sigPad" class="sig-pad" width="600" height="200"></canvas>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn secondary" onclick="clearSig()">Clear</button>
+        <button class="btn" onclick="saveSig()">Save Signature to Job</button>
+      </div>
+      <div id="sigPreview" style="margin-top:8px"></div>
+    </section>
+
+    <!-- PROPOSALS -->
+    <section id="tab-proposal" class="tab card hidden">
+      <h2>🧾 Proposal Builder (3-tier)</h2>
+      <div class="row">
+        <div><label>Client Name</label><input id="pClient" placeholder="Homeowner / HOA"></div>
+        <div><label>Property Address</label><input id="pAddress" placeholder="Address"></div>
+      </div>
+      <div class="row">
+        <div><label>Tier A Name</label><input id="pAName" value="Budget"></div>
+        <div><label>Price A ($)</label><input id="pAPrice" type="number" step="0.01"></div>
+      </div>
+      <label>Scope A</label><textarea id="pAScope" placeholder="Bullets: mowing, edging, light cleanup..."></textarea>
+
+      <div class="row">
+        <div><label>Tier B Name</label><input id="pBName" value="Standard"></div>
+        <div><label>Price B ($)</label><input id="pBPrice" type="number" step="0.01"></div>
+      </div>
+      <label>Scope B</label><textarea id="pBScope" placeholder="Bullets: add bed edging, mulch refresh..."></textarea>
+
+      <div class="row">
+        <div><label>Tier C Name</label><input id="pCName" value="Premium"></div>
+        <div><label>Price C ($)</label><input id="pCPrice" type="number" step="0.01"></div>
+      </div>
+      <label>Scope C</label><textarea id="pCScope" placeholder="Bullets: seasonal color, drainage, hardscape..."></textarea>
+
+      <div class="row">
+        <div><label>Payment Plan (% of total / month)</label><input id="pPlanPct" type="number" value="25"></div>
+        <div><label>Start Date</label><input id="pStart" type="date"></div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="openProposal()">Open Proposal (Print/PDF)</button>
+      </div>
+    </section>
+
+    <!-- FINANCE -->
+    <section id="tab-finance" class="tab card hidden">
+      <h2>📊 Profit Calculator (internal)</h2>
+      <div class="row">
+        <div><label>Materials Cost ($)</label><input id="fMaterials" type="number" step="0.01" value="0"></div>
+        <div><label>Overhead %%</label><input id="fOverheadPct" type="number" step="0.01" value="10"></div>
+        <div><label>Markup %%</label><input id="fMarkupPct" type="number" step="0.01" value="20"></div>
+      </div>
+      <div class="row">
+        <div><label>Labor: Names (comma)</label><input id="fNames" placeholder="Jay, Josh, Helper"></div>
+        <div><label>Labor: Hours per name (comma)</label><input id="fHours" placeholder="3,3,3"></div>
+      </div>
+      <p class="muted">Wages are pulled from Settings and matched by name.</p>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="calcProfit()">Calculate</button>
+      </div>
+      <div id="profitOut" class="card"></div>
+    </section>
+
+    <!-- INVOICE -->
+    <section id="tab-invoice" class="tab card hidden">
+      <h2>💳 Invoices & Deposit QR</h2>
+      <div class="row">
+        <div><label>Invoice #</label><input id="invNumber" placeholder="AUTO or set"></div>
+        <div><label>Invoice Date</label><input id="invDate" type="date"></div>
+        <div><label>Bill To (pick client)</label><select id="invClient"></select></div>
+      </div>
+      <div class="row">
+        <div><label>Project / Job</label><input id="invProject" placeholder="e.g., Wyburn Downs Entrance"></div>
+        <div><label>Due Date</label><input id="invDue" type="date"></div>
+      </div>
+      <h3>Line Items</h3>
+      <table id="invTable">
+        <thead><tr><th>Description</th><th>Qty</th><th>Rate ($)</th><th>Amount</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div style="margin-top:8px">
+        <button class="btn" onclick="addItem()">Add Item</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <div><label>Tax %</label><input id="invTaxPct" type="number" value="0"></div>
+        <div><label>Deposit %</label><input id="invDepPct" type="number" value="33"></div>
+        <div><label>Payment Link Base (Settings)</label><input id="invPayBase" disabled></div>
+      </div>
+      <div id="invTotals" class="card"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="openInvoice()">Open Invoice (Print/PDF)</button>
+        <button class="btn secondary" onclick="saveInvoice()">Save Invoice</button>
+      </div>
+      <p class="muted">Payment QR uses a base link from Settings with amount & invoice # in the URL. Example: https://pay.yourlink.com/?invoice=###&amount=###</p>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="tab-reports" class="tab card hidden">
+      <h2>📑 Reports</h2>
+      <div class="row">
+        <div><button class="btn" onclick="openJobReport()">Open Job Report (Print/PDF)</button></div>
+        <div><button class="btn secondary" onclick="openDailySummary()">Open Daily Summary</button></div>
+      </div>
+      <p class="muted">Use your browser’s “Print → Save as PDF” to create a PDF file.</p>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="tab card hidden">
+      <h2>⚙️ Settings</h2>
+      <div class="row">
+        <div><label>Default Crew Names (comma)</label><input id="setCrew" placeholder="Jay, Josh, Kevin"></div>
+        <div><label>Hourly Wages ($/hr) (comma; same order)</label><input id="setWages" placeholder="20,20,15"></div>
+      </div>
+      <div class="row">
+        <div><label>Company Phones (comma)</label><input id="setPhones" placeholder="615-308-8477, 615-218-9200"></div>
+        <div><label>Logo Text</label><input id="setLogo" placeholder="Scenic Roots Lawn Care & Landscaping"></div>
+      </div>
+      <div class="row">
+        <div><label>Payment Link Base (for QR)</label><input id="setPayBase" placeholder="https://pay.example.com/collect"></div>
+        <div><label>Company Email</label><input id="setEmail" placeholder="office@scenicroots.com"></div>
+      </div>
+      <div style="margin-top:10px">
+        <button class="btn" onclick="saveSettings()">Save Settings</button>
+      </div>
+      <p class="muted">Wage pairing: the 1st name maps to the 1st wage, 2nd→2nd, etc.</p>
+    </section>
+
+    <!-- EXPORT -->
+    <section id="tab-export" class="tab card hidden">
+      <h2>📤 Export / Import</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="exportJSON()">Export JSON</button>
+        <button class="btn secondary" onclick="exportCSV()">Export CSV (jobs)</button>
+        <label class="pill" for="importFile">Import JSON <input id="importFile" type="file" accept="application/json"></label>
+        <button class="btn warn" onclick="wipeAll()">Wipe All Data</button>
+      </div>
+      <p class="muted">All data is stored locally on this device. Export backups regularly if needed.</p>
+    </section>
+
+  </div>
+
+  <footer class="no-print">© <span id="year"></span> Scenic Roots • Field App</footer>
+
+<script>
+// --- Global State ---
+const state = {
+  clients: [], // {id,name,phone,email,address,notes}
+  jobs: [],
+  settings: {
+    crewDefault: "Jay, Josh, Kevin",
+    wages: "20,20,15",
+    phones: "615-308-8477, 615-218-9200",
+    logo: "Scenic Roots Lawn Care & Landscaping",
+    payment_base: "",
+    email: ""
+  },
+  pickList: [],
+  clientMode: false,
+  proposal: {},
+  invoices: [] // {id,number,date,due,clientId,project,items:[{desc,qty,rate}],taxPct,depPct,totals}
+};
+
+const DEFAULT_TASKS = {
+  mow: ["Mow all turf","Trim/edge hard surfaces","Blow off walks/driveway","Trash/debris pickup","Photos before/after"],
+  landscape: ["Layout beds & edges","Install fabric (if used)","Place plants per plan","Mulch/stone install","Final cleanup + photos"],
+  drainage: ["Mark utilities","Excavate trench","Install pipe/stone","Backfill/compact","Test flow + photos"],
+  cleanup: ["Leaf pile/mulch","Stick pickup","Bag / dump run","Blow off","Final photos"]
+};
+
+// --- Storage helpers ---
+function save(){ localStorage.setItem("sr_field_app_v5", JSON.stringify(state)); render(); }
+function load(){ const raw=localStorage.getItem("sr_field_app_v5"); if(raw){ try{ Object.assign(state, JSON.parse(raw)); }catch(e){} } }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function money(n){ return (n||0).toFixed(2); }
+
+// --- Tabs ---
+const tabs=[
+  {id:"crm",label:"CRM"},
+  {id:"schedule",label:"Schedule"},
+  {id:"job",label:"Job"},
+  {id:"materials",label:"Materials"},
+  {id:"photos",label:"Photos & Signature"},
+  {id:"proposal",label:"Proposals"},
+  {id:"finance",label:"Finance"},
+  {id:"invoice",label:"Invoices"},
+  {id:"reports",label:"Reports"},
+  {id:"settings",label:"Settings"},
+  {id:"export",label:"Export"}
+];
+function buildTabs(){ const el=document.getElementById("tabs"); el.innerHTML=""; tabs.forEach(t=>{ const b=document.createElement("button"); b.textContent=t.label; b.className="tab-btn"; b.onclick=()=>showTab(t.id); el.appendChild(b); }); showTab("crm"); }
+function showTab(id){ document.querySelectorAll(".tab").forEach(s=>s.classList.add("hidden")); document.getElementById("tab-"+id).classList.remove("hidden"); document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active", tabs[i].id===id)); if(id==="photos") renderPhotoUI(); if(id==="materials") renderPickList(); if(id==="crm") renderClients(); if(id==="invoice") renderInvoiceUI(); }
+
+// --- Client Mode ---
+function toggleClientMode(){ state.clientMode = document.getElementById("clientMode").checked; save(); }
+function prettyType(t){ return {mow:"Mowing", landscape:"Landscape", drainage:"Drainage", cleanup:"Cleanup"}[t]||t; }
+function prettyStatus(s){ return {scheduled:"Scheduled",in_progress:"In Progress",paused:"Paused",completed:"Completed"}[s]||s; }
+function mapsLink(addr){ return addr?`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`:"#"; }
+
+// --- CRM ---
+function clearClientForm(){ cName.value=""; cPhone.value=""; cEmail.value=""; cAddress.value=""; cNotes.value=""; }
+function addClient(){
+  const name=cName.value.trim(); if(!name){ alert("Enter client name."); return; }
+  const c={id:uid(), name, phone:cPhone.value.trim(), email:cEmail.value.trim(), address:cAddress.value.trim(), notes:cNotes.value.trim()};
+  state.clients.push(c); save(); clearClientForm();
+}
+function renderClients(){
+  const list=document.getElementById("clientList"); list.innerHTML="";
+  if(state.clients.length===0){ list.innerHTML="<p class='muted'>No clients yet. Add one above.</p>"; return; }
+  state.clients.forEach(c=>{
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML=`<strong>${c.name}</strong><br>
+      <span class="muted">${c.address||""}</span><br>
+      <span>${c.phone||""}</span> • <span>${c.email||""}</span><br>
+      <span class="muted">${c.notes||""}</span>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="useClient('${c.id}')">Create Job</button>
+        <button class="btn secondary" onclick="prepInvoiceFor('${c.id}')">Invoice</button>
+        <button class="btn warn" onclick="deleteClient('${c.id}')">Delete</button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+function useClient(id){
+  const c=state.clients.find(x=>x.id===id); if(!c) return;
+  showTab("schedule");
+  jobName.value = c.name + " — ";
+  jobAddress.value = c.address||"";
+}
+function deleteClient(id){
+  if(!confirm("Delete this client?")) return;
+  state.clients = state.clients.filter(x=>x.id!==id); save(); renderClients();
+}
+
+// --- Schedule / Jobs ---
+function clearJobForm(){ jobName.value=""; jobAddress.value=""; jobType.value="mow"; jobCrew.value=""; jobNotes.value=""; jobStatus.value="scheduled"; jobWeather.value=""; jobStart.value=""; jobFinish.value=""; }
+function addJob(){
+  const name=jobName.value.trim(); if(!name){ alert("Enter a job name."); return; }
+  const crewStr=jobCrew.value.trim() || state.settings.crewDefault;
+  const crewList=crewStr.split(",").map(s=>s.trim()).filter(Boolean);
+  const crewTimers={}; crewList.forEach(n=>crewTimers[n]={running:false,start:null,elapsed:0});
+  const j={
+    id:uid(), name, address:jobAddress.value.trim(), type:jobType.value,
+    crew:crewStr, status:jobStatus.value, notes:jobNotes.value.trim(), weather:jobWeather.value.trim(),
+    start:jobStart.value||"", finish:jobFinish.value||"",
+    tasks:DEFAULT_TASKS[jobType.value].map(t=>({label:t,done:false})),
+    jobTimer:{running:false,start:null,elapsed:0},
+    crewTimers, photos:[], signature:null
+  };
+  state.jobs.push(j); save(); clearJobForm(); showTab("job"); loadJob(j.id);
+}
+function addSample(){
+  const ex=[
+    {name:"Wyburn Downs – Entrance",address:"100 Entrance Dr, Dickson, TN",type:"mow"},
+    {name:"Harvest Circle HOA - Beds",address:"200 Harvest Cir, Dickson, TN",type:"landscape"},
+    {name:"Timberland - Drainage",address:"300 Timberland Rd, Dickson, TN",type:"drainage"}
+  ];
+  ex.forEach(s=>{ jobName.value=s.name; jobAddress.value=s.address; jobType.value=s.type; addJob(); });
+}
+function renderJobs(){
+  todayLabel.textContent=new Date().toLocaleDateString();
+  const list=document.getElementById("jobsList"); list.innerHTML="";
+  if(state.jobs.length===0){ list.innerHTML="<p class='muted'>No jobs yet. Add one above.</p>"; return; }
+  state.jobs.forEach(j=>{
+    const done=j.tasks.filter(t=>t.done).length+"/"+j.tasks.length;
+    const card=document.createElement("div"); card.className="card";
+    card.innerHTML=`
+      <div class="row">
+        <div><strong>${j.name}</strong><br><span class="muted">${j.address||'No address set'}</span></div>
+        <div><span class="pill">${prettyType(j.type)}</span></div>
+      </div>
+      <div class="row" style="margin-top:6px">
+        <div><span class="muted">Crew:</span> ${j.crew}</div>
+        <div><span class="muted">Tasks:</span> ${done}</div>
+        <div><span class="muted">Status:</span> ${prettyStatus(j.status)}</div>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="loadJob('${j.id}')">Open</button>
+        <a class="btn secondary" href="${mapsLink(j.address)}" target="_blank">Navigate</a>
+        <button class="btn secondary" onclick="duplicateJob('${j.id}')">Duplicate</button>
+        <button class="btn warn" onclick="deleteJob('${j.id}')">Delete</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+function duplicateJob(id){ const j=state.jobs.find(x=>x.id===id); if(!j) return; const copy=JSON.parse(JSON.stringify(j)); copy.id=uid(); copy.jobTimer={running:false,start:null,elapsed:0}; Object.keys(copy.crewTimers).forEach(k=>copy.crewTimers[k]={running:false,start:null,elapsed:0}); copy.tasks.forEach(t=>t.done=false); state.jobs.push(copy); save(); renderJobs(); }
+function deleteJob(id){ if(!confirm("Delete this job?")) return; state.jobs=state.jobs.filter(j=>j.id!==id); save(); renderJobs(); }
+
+// --- Job Detail ---
+function loadJob(id){ const j=state.jobs.find(x=>x.id===id); if(!j) return; state.activeJobId=id; showTab("job"); renderActiveJob(); }
+function curJob(){ return state.jobs.find(x=>x.id===state.activeJobId); }
+function crewListForJob(j){ return j.crew.split(",").map(s=>s.trim()).filter(Boolean); }
+function wageMap(){ const names=(state.settings.crewDefault||"").split(",").map(s=>s.trim()); const wages=(state.settings.wages||"").split(",").map(x=>parseFloat(x)||0); const map={}; names.forEach((n,i)=>map[n]=wages[i]||0); return map; }
+function wageFor(name){ const m=wageMap(); return m[name]!=null?m[name]:0; }
+
+function renderActiveJob(){
+  const j=curJob(); if(!j){ activeJobContainer.innerHTML="<p class='muted'>No active job.</p>"; return; }
+  const jobElapsed = j.jobTimer.elapsed + (j.jobTimer.running ? (Date.now()-j.jobTimer.start) : 0);
+
+  let crewRows=""; let totalManHours=0; let liveCost=0;
+  Object.keys(j.crewTimers).forEach(name=>{
+    const ct=j.crewTimers[name];
+    const e=ct.elapsed + (ct.running ? (Date.now()-ct.start) : 0);
+    const hours=e/3600000;
+    totalManHours += hours;
+    liveCost += hours * (wageFor(name)||0);
+    crewRows += `<tr>
+      <td>${name}</td>
+      <td class="mono">${formatTime(e)}</td>
+      ${state.clientMode?``:`<td class="mono">$${(wageFor(name)||0).toFixed(2)}/hr</td>`}
+      <td>
+        <button class="btn secondary" onclick="crewStart('${name}')">Start</button>
+        <button class="btn secondary" onclick="crewPause('${name}')">Pause</button>
+        <button class="btn secondary" onclick="crewReset('${name}')">Reset</button>
+      </td>
+    </tr>`;
+  });
+
+  activeJobContainer.innerHTML = `
+    <div class="row">
+      <div><strong>${j.name}</strong><br><span class="muted">${j.address||''}</span></div>
+      <div>
+        <label>Status</label>
+        <select id="jobStatusEdit" onchange="saveStatus(this.value)">
+          <option value="scheduled" ${j.status==='scheduled'?'selected':''}>Scheduled</option>
+          <option value="in_progress" ${j.status==='in_progress'?'selected':''}>In Progress</option>
+          <option value="paused" ${j.status==='paused'?'selected':''}>Paused</option>
+          <option value="completed" ${j.status==='completed'?'selected':''}>Completed</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div><span class="muted">Crew:</span> ${j.crew}</div>
+      <div><span class="muted">Weather:</span> ${j.weather||'-'}</div>
+    </div>
+
+    <div class="task timer">⏱️ Job Timer: <span id="timerVal">${formatTime(jobElapsed)}</span></div>
+    <div style="display:flex;gap:8px;margin:8px 0">
+      <button class="btn" onclick="startJobTimer()">Start</button>
+      <button class="btn secondary" onclick="pauseJobTimer()">Pause</button>
+      <button class="btn secondary" onclick="resetJobTimer()">Reset</button>
+    </div>
+
+    <div class="card">
+      <h3>👥 Per-Crew Timers</h3>
+      <table><thead><tr><th>Name</th><th>Time</th>${state.clientMode?``:`<th>Wage</th>`}<th>Controls</th></tr></thead><tbody>${crewRows}</tbody></table>
+    </div>
+
+    ${state.clientMode?``:`<div class="card"><h3>💵 Live Cost Burn</h3>
+      <p><strong>Total Man-Hours:</strong> <span id="mhVal">${totalManHours.toFixed(2)}</span> • <strong>Labor Cost:</strong> $<span id="costVal">${liveCost.toFixed(2)}</span></p>
+      <p class="muted">Cost = sum of (each crew member's hours × their wage rate)</p></div>`}
+
+    <details open class="card">
+      <summary>Checklist</summary>
+      <div id="taskList"></div>
+    </details>
+
+    <details class="card">
+      <summary>Notes & Times</summary>
+      <div class="row">
+        <div><label>Start</label><input id="editStart" type="datetime-local" value="${j.start||''}"></div>
+        <div><label>Finish</label><input id="editFinish" type="datetime-local" value="${j.finish||''}"></div>
+      </div>
+      <label>Notes</label>
+      <textarea id="jobNotesEdit">${j.notes||''}</textarea>
+      <div style="margin-top:8px"><button class="btn" onclick="saveNotes()">Save</button></div>
+    </details>
+
+    <div class="row">
+      <a class="btn" href="${mapsLink(j.address)}" target="_blank">Open in Maps</a>
+      <button class="btn secondary" onclick="showTab('photos')">Photos & Signature</button>
+    </div>
+  `;
+
+  renderTasks(j);
+  tickJobTimer();
+  tickLiveCost();
+}
+function saveStatus(val){ const j=curJob(); j.status=val; save(); }
+function renderTasks(j){ const wrap=document.getElementById("taskList"); wrap.innerHTML=""; j.tasks.forEach((t,idx)=>{ const row=document.createElement("div"); row.className="task"; row.innerHTML=`<input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${idx})"> ${t.label}`; wrap.appendChild(row); }); }
+function toggleTask(idx){ const j=curJob(); j.tasks[idx].done=!j.tasks[idx].done; save(); }
+function saveNotes(){ const j=curJob(); j.notes=document.getElementById("jobNotesEdit").value.trim(); j.start=document.getElementById("editStart").value; j.finish=document.getElementById("editFinish").value; save(); }
+
+// Job timer controls
+let jobTick=null, costTick=null;
+function tickJobTimer(){ clearInterval(jobTick); const j=curJob(); if(!j) return; jobTick=setInterval(()=>{ const e=j.jobTimer.elapsed+(j.jobTimer.running?(Date.now()-j.jobTimer.start):0); const el=document.getElementById("timerVal"); if(el) el.textContent=formatTime(e); }, 1000); }
+function tickLiveCost(){ clearInterval(costTick); costTick=setInterval(()=>{ if(state.clientMode) return; const j=curJob(); if(!j) return; let mh=0, cost=0; Object.keys(j.crewTimers).forEach(name=>{ const ct=j.crewTimers[name]; const e=ct.elapsed + (ct.running ? (Date.now()-ct.start) : 0); const h=e/3600000; mh+=h; cost+=h*(wageFor(name)||0); }); const mhEl=document.getElementById("mhVal"); const cEl=document.getElementById("costVal"); if(mhEl) mhEl.textContent=mh.toFixed(2); if(cEl) cEl.textContent=cost.toFixed(2); }, 1500); }
+function startJobTimer(){ const j=curJob(); if(!j) return; if(!j.jobTimer.running){ j.jobTimer.running=true; j.jobTimer.start=Date.now(); j.status="in_progress"; save(); } }
+function pauseJobTimer(){ const j=curJob(); if(!j) return; if(j.jobTimer.running){ j.jobTimer.elapsed+=Date.now()-j.jobTimer.start; j.jobTimer.running=false; j.jobTimer.start=null; j.status="paused"; save(); } }
+function resetJobTimer(){ const j=curJob(); if(!j) return; if(confirm("Reset job timer?")){ j.jobTimer={running:false,start:null,elapsed:0}; save(); } }
+// Per-crew timer controls
+function crewStart(name){ const j=curJob(); const ct=j.crewTimers[name]; if(!ct.running){ ct.running=true; ct.start=Date.now(); save(); renderActiveJob(); } }
+function crewPause(name){ const j=curJob(); const ct=j.crewTimers[name]; if(ct.running){ ct.elapsed+=Date.now()-ct.start; ct.running=false; ct.start=null; save(); renderActiveJob(); } }
+function crewReset(name){ const j=curJob(); const ct=j.crewTimers[name]; if(confirm("Reset "+name+" timer?")){ ct.running=false; ct.start=null; ct.elapsed=0; save(); renderActiveJob(); } }
+function formatTime(ms){ const s=Math.floor(ms/1000); const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const sec=s%60; return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0"); }
+
+// --- Materials + Pick List ---
+function calcMaterial(){
+  const area=parseFloat(matArea.value||0), depth=parseFloat(matDepth.value||0), type=matType.value, price=parseFloat(matPrice.value||0);
+  if(type==="sod"){ const qty=area; const cost=price?qty*price:0; matResult.textContent=`${qty.toFixed(0)} sq ft • $${cost.toFixed(2)}`; return; }
+  const cubicFeet=area*(depth/12); const cubicYards=cubicFeet/27; const cost=price?cubicYards*price:0;
+  matResult.textContent=`${cubicYards.toFixed(2)} yd³ • $${cost.toFixed(2)}`;
+}
+function addToPickList(){
+  const type=matType.value; if(!matResult.textContent){ calcMaterial(); }
+  let qty=0, unit=""; const price=parseFloat(matPrice.value||0);
+  if(type==="sod"){ qty=parseFloat(matArea.value||0); unit="sq ft"; }
+  else{ const area=parseFloat(matArea.value||0), depth=parseFloat(matDepth.value||0); qty=(area*(depth/12))/27; unit="yd³"; }
+  const subtotal=price?qty*price:0;
+  state.pickList.push({material:prettyMaterial(type), qty:qty, unit, price:price||0, subtotal}); save(); renderPickList();
+}
+function prettyMaterial(t){ return {mulch:"Mulch",topsoil:"Topsoil",stone:"#57 Stone",riprap:"Riprap",sand:"Sand",sod:"Sod"}[t]||t; }
+function renderPickList(){
+  const el=document.getElementById("pickList"); if(!el) return;
+  if(state.pickList.length===0){ el.innerHTML="<p class='muted'>No items yet.</p>"; return; }
+  let rows=""; let total=0;
+  state.pickList.forEach((p,i)=>{ total+=p.subtotal; rows+=`<tr><td>${p.material}</td><td>${p.qty.toFixed(2)} ${p.unit}</td><td>$${p.price.toFixed(2)}</td><td>$${p.subtotal.toFixed(2)}</td><td><button class='btn warn' onclick='removePick(${i})'>Remove</button></td></tr>`; });
+  el.innerHTML=`<table><thead><tr><th>Material</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th><th></th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" style="text-align:right">Total</th><th>$${total.toFixed(2)}</th><th></th></tr></tfoot></table>`;
+}
+function removePick(i){ state.pickList.splice(i,1); save(); renderPickList(); }
+function clearPickList(){ if(!confirm("Clear entire pick list?")) return; state.pickList=[]; save(); renderPickList(); }
+function exportPickList(){
+  const lines=["Material,Qty,Unit,Unit Price,Subtotal"]; let total=0;
+  state.pickList.forEach(p=>{ total+=p.subtotal; lines.push([p.material,p.qty.toFixed(2),p.unit,p.price.toFixed(2),p.subtotal.toFixed(2)].join(",")); });
+  lines.push(["TOTAL","","","",total.toFixed(2)].join(","));
+  download("pick_list.csv", lines.join("\n"), "text/csv");
+}
+
+// --- Photos + Signature ---
+function renderPhotoUI(){
+  const picker=document.getElementById("photoJobPicker"); picker.innerHTML="";
+  const sel=document.createElement("select"); sel.id="photoJobSelect"; state.jobs.forEach(j=>{ const opt=document.createElement("option"); opt.value=j.id; opt.textContent=j.name; sel.appendChild(opt); });
+  picker.appendChild(sel);
+  const btn=document.createElement("button"); btn.className="btn"; btn.style.marginLeft="8px"; btn.textContent="Load Gallery"; btn.onclick=()=>showGallery(sel.value); picker.appendChild(btn);
+  const first=state.jobs[0]; if(first) showGallery(first.id);
+  setupSigPad();
+}
+function showGallery(jobId){
+  const gal=document.getElementById("photoGallery"); gal.innerHTML="";
+  const j=state.jobs.find(x=>x.id===jobId); if(!j) return;
+  if((j.photos||[]).length===0){ gal.innerHTML="<p class='muted'>No photos yet for this job.</p>"; return; }
+  j.photos.forEach((p,i)=>{ const card=document.createElement("div"); card.className="card"; card.innerHTML=`<img src="${p}" alt="photo" style="width:100%;border-radius:8px"><div style="margin-top:6px"><button class="btn warn" onclick="deletePhoto('${j.id}',${i})">Delete</button></div>`; gal.appendChild(card); });
+}
+async function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+async function savePhotos(){
+  const sel=document.getElementById("photoJobSelect"); const j=state.jobs.find(x=>x.id===sel.value); if(!j){ alert("Pick a job first"); return; }
+  const files=Array.from(document.getElementById("photoInput").files||[]); if(files.length===0){ alert("Choose images to upload"); return; }
+  for(const f of files){ const data=await fileToDataURL(f); j.photos.push(data); } save(); showGallery(j.id);
+}
+function deletePhoto(jobId, idx){ const j=state.jobs.find(x=>x.id===jobId); if(!j) return; j.photos.splice(idx,1); save(); showGallery(jobId); }
+
+// Signature pad
+let sigCtx, drawing=false, last=null;
+function setupSigPad(){
+  const pad=document.getElementById("sigPad"); if(!pad) return;
+  sigCtx=pad.getContext("2d"); sigCtx.fillStyle="#fff"; sigCtx.fillRect(0,0,pad.width,pad.height); sigCtx.strokeStyle="#111"; sigCtx.lineWidth=2;
+  const pos=e=>{ const r=pad.getBoundingClientRect(); const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left; const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top; return {x,y}; };
+  const start=e=>{ drawing=true; last=pos(e); };
+  const move=e=>{ if(!drawing) return; const p=pos(e); sigCtx.beginPath(); sigCtx.moveTo(last.x,last.y); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); last=p; e.preventDefault(); };
+  const end=()=>{ drawing=false; };
+  pad.onmousedown=start; pad.onmousemove=move; window.onmouseup=end;
+  pad.ontouchstart=start; pad.ontouchmove=move; pad.ontouchend=end;
+}
+function clearSig(){ const pad=document.getElementById("sigPad"); if(!pad) return; sigCtx.clearRect(0,0,pad.width,pad.height); sigCtx.fillStyle="#fff"; sigCtx.fillRect(0,0,pad.width,pad.height); document.getElementById("sigPreview").innerHTML=""; }
+function saveSig(){
+  const pad=document.getElementById("sigPad"); if(!pad) return;
+  const data=pad.toDataURL("image/png");
+  const j=curJob(); if(!j){ alert("Open a job first."); return; }
+  j.signature=data; save();
+  const img=new Image(); img.src=data; img.style.maxWidth="100%";
+  const prev=document.getElementById("sigPreview"); prev.innerHTML=""; prev.appendChild(img);
+  alert("Signature saved to job.");
+}
+
+// --- Reports ---
+function openJobReport(){
+  const j=curJob(); if(!j){ alert("Open a job first."); return; }
+  const w=window.open(""); const d=w.document;
+  const day=new Date().toLocaleString();
+  let mh=0, cost=0, rows="";
+  Object.keys(j.crewTimers).forEach(name=>{
+    const ct=j.crewTimers[name]; const e=ct.elapsed + (ct.running ? (Date.now()-ct.start) : 0);
+    const h=e/3600000; mh+=h; const wage=wageFor(name)||0; const sub=h*wage; cost+=sub;
+    rows+=`<tr><td>${name}</td><td>${formatTime(e)}</td>${state.clientMode?``:`<td>$${wage.toFixed(2)}/hr</td><td>$${sub.toFixed(2)}</td>`}</tr>`;
+  });
+  const done=j.tasks.filter(t=>t.done).length+"/"+j.tasks.length;
+  const sig = j.signature ? `<h3>Client Signature</h3><img src="${j.signature}" style="max-width:280px;border:1px solid #ddd;border-radius:6px">` : "";
+  const html=`<html><head><title>${j.name} — Job Report</title>
+  <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px} h1{margin:0 0 4px} h2{margin:8px 0} table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left} .muted{color:#666}</style></head><body>
+  <h1>${state.settings.logo}</h1>
+  <h2>Job Report</h2>
+  <p class="muted">${day}</p>
+  <p><strong>Job:</strong> ${j.name}<br><strong>Address:</strong> ${j.address||"-"}<br><strong>Type:</strong> ${prettyType(j.type)}<br><strong>Status:</strong> ${prettyStatus(j.status)}<br><strong>Weather:</strong> ${j.weather||"-"}</p>
+  <p><strong>Start:</strong> ${j.start||"-"} &nbsp; <strong>Finish:</strong> ${j.finish||"-"}</p>
+  <h3>Crew</h3>
+  <table><thead><tr><th>Name</th><th>Time</th>${state.clientMode?``:`<th>Wage</th><th>Subtotal</th>`}</tr></thead><tbody>${rows}</tbody></table>
+  <h3>Tasks</h3>
+  <p>${done} completed</p>
+  <h3>Notes</h3>
+  <p>${(j.notes||"-").replace(/</g,"&lt;")}</p>
+  ${sig}
+  <p class="muted">Print → Save as PDF</p>
+  </body></html>`;
+  d.write(html); d.close(); w.focus(); setTimeout(()=>w.print(), 500);
+}
+function openDailySummary(){
+  const w=window.open(""); const d=w.document;
+  const day=new Date().toLocaleDateString();
+  let totalJobs=state.jobs.length; let totalMH=0; let totalCost=0;
+  let bodyRows="";
+  state.jobs.forEach(j=>{
+    let mh=0,cost=0;
+    Object.keys(j.crewTimers).forEach(name=>{ const ct=j.crewTimers[name]; const e=ct.elapsed + (ct.running ? (Date.now()-ct.start) : 0); const h=e/3600000; mh+=h; cost+=h*(wageFor(name)||0); });
+    totalMH+=mh; totalCost+=cost;
+    bodyRows+=`<tr><td>${j.name}</td><td>${prettyType(j.type)}</td><td>${prettyStatus(j.status)}</td><td>${j.crew}</td>${state.clientMode?``:`<td>${mh.toFixed(2)}</td><td>$${cost.toFixed(2)}</td>`}</tr>`;
+  });
+  const html=`<html><head><title>Daily Summary ${day}</title><style>body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px} h1{margin:0 0 10px} table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left} .muted{color:#666}</style></head><body>
+  <h1>${state.settings.logo}</h1><h2>Daily Summary — ${day}</h2>
+  <table><thead><tr><th>Job</th><th>Type</th><th>Status</th><th>Crew</th>${state.clientMode?``:`<th>Man-Hours</th><th>Labor Cost</th>`}</tr></thead><tbody>${bodyRows}</tbody></table>
+  ${state.clientMode?``:`<p class="muted">Totals — Jobs: ${totalJobs}, Man-Hours: ${totalMH.toFixed(2)}, Labor Cost: $${totalCost.toFixed(2)}</p>`}
+  <p class="muted">Print → Save as PDF</p>
+  </body></html>`;
+  d.write(html); d.close(); w.focus(); setTimeout(()=>w.print(), 500);
+}
+
+// --- Proposal Builder ---
+function openProposal(){
+  const pct=parseFloat(document.getElementById("pPlanPct").value||0)/100;
+  const p={
+    client:document.getElementById("pClient").value.trim(),
+    address:document.getElementById("pAddress").value.trim(),
+    tiers:[
+      {name:document.getElementById("pAName").value, price:parseFloat(document.getElementById("pAPrice").value||0), scope:document.getElementById("pAScope").value.trim()},
+      {name:document.getElementById("pBName").value, price:parseFloat(document.getElementById("pBPrice").value||0), scope:document.getElementById("pBScope").value.trim()},
+      {name:document.getElementById("pCName").value, price:parseFloat(document.getElementById("pCPrice").value||0), scope:document.getElementById("pCScope").value.trim()}
+    ],
+    planPct:pct,
+    start:document.getElementById("pStart").value||""
+  };
+  state.proposal=p; save();
+  const w=window.open(""); const d=w.document;
+  const rows=p.tiers.map(t=>{
+    const monthly=(t.price||0)*pct;
+    return `<tr><td><strong>${t.name}</strong><div style="white-space:pre-wrap;margin-top:6px">${(t.scope||"-").replace(/</g,"&lt;")}</div></td><td class="mono">$${(t.price||0).toFixed(2)}</td><td class="mono">$${monthly.toFixed(2)}/mo</td></tr>`;
+  }).join("");
+  const html=`<html><head><title>Proposal — ${p.client||""}</title><style>body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px} h1{margin:0 0 8px} table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #ddd;padding:10px;text-align:left} .mono{font-variant-numeric:tabular-nums}</style></head><body>
+  <h1>${state.settings.logo}</h1>
+  <h2>Landscape Proposal</h2>
+  <p><strong>Client:</strong> ${p.client||"-"}<br><strong>Address:</strong> ${p.address||"-"}<br><strong>Start:</strong> ${p.start||"-"}<br><strong>Payment Plan:</strong> ${(pct*100).toFixed(0)}% per month</p>
+  <table><thead><tr><th>Tier & Scope</th><th>Total</th><th>Plan</th></tr></thead><tbody>${rows}</tbody></table>
+  <p style="margin-top:20px"><em>Notes:</em> All work scheduled upon acceptance and deposit. Client approvals below.</p>
+  <div style="margin-top:24px"><strong>Client Signature:</strong> _____________________________ &nbsp;&nbsp; <strong>Date:</strong> _____________</div>
+  <p class="muted">Print → Save as PDF</p>
+  </body></html>`;
+  d.write(html); d.close(); w.focus(); setTimeout(()=>w.print(), 500);
+}
+
+// --- Finance (Profit Calculator) ---
+function calcProfit(){
+  const materials=parseFloat(document.getElementById("fMaterials").value||0);
+  const overheadPct=parseFloat(document.getElementById("fOverheadPct").value||0)/100;
+  const markupPct=parseFloat(document.getElementById("fMarkupPct").value||0)/100;
+  const names=(document.getElementById("fNames").value||"").split(",").map(s=>s.trim()).filter(Boolean);
+  const hours=(document.getElementById("fHours").value||"").split(",").map(x=>parseFloat(x)||0);
+  let laborCost=0;
+  names.forEach((n,i)=>{ laborCost += (hours[i]||0) * (wageFor(n)||0); });
+  const overhead=overheadPct*(materials+laborCost);
+  const baseCost=materials+laborCost+overhead;
+  const price=baseCost*(1+markupPct);
+  const jaysFee = price>1200 ? 0.33*(price - (materials+laborCost+overhead)) : 0;
+  const profit = price - (materials+laborCost+overhead) - jaysFee;
+  const margin = price>0 ? (profit/price)*100 : 0;
+  const html=`
+    <h3>Result</h3>
+    <p class="mono">Materials: $${money(materials)}<br>Labor: $${money(laborCost)}<br>Overhead: $${money(overhead)}<br><strong>Base Cost:</strong> $${money(baseCost)}</p>
+    <p class="mono"><strong>Proposed Price:</strong> $${money(price)}</p>
+    <p class="mono">Jay’s 33%% (if price > $1,200): $${money(jaysFee)}</p>
+    <p class="mono"><strong>Net Profit:</strong> $${money(profit)} &nbsp; (<strong>${margin.toFixed(1)}%%</strong> margin)</p>
+  `;
+  document.getElementById("profitOut").innerHTML=html;
+}
+
+// --- Invoices ---
+function renderInvoiceUI(){
+  const sel=document.getElementById("invClient"); sel.innerHTML="<option value=''>— Select —</option>";
+  state.clients.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=c.name; sel.appendChild(o); });
+  invDate.value = invDate.value || new Date().toISOString().slice(0,10);
+  invPayBase.value = state.settings.payment_base||"";
+  const tbody=document.querySelector("#invTable tbody"); tbody.innerHTML=""; addItem(); updateTotals();
+}
+function prepInvoiceFor(clientId){ showTab("invoice"); renderInvoiceUI(); invClient.value=clientId; }
+function addItem(desc="",qty=1,rate=0){
+  const tbody=document.querySelector("#invTable tbody");
+  const tr=document.createElement("tr");
+  tr.innerHTML=`<td><input class="inv-desc" placeholder="Description" value="${desc}"></td>
+                <td><input class="inv-qty" type="number" step="0.01" value="${qty}"></td>
+                <td><input class="inv-rate" type="number" step="0.01" value="${rate}"></td>
+                <td class="inv-amt mono">$0.00</td>
+                <td><button class="btn warn" onclick="this.closest('tr').remove(); updateTotals();">Remove</button></td>`;
+  tbody.appendChild(tr);
+  tr.querySelectorAll("input").forEach(inp=>inp.addEventListener("input", updateTotals));
+  updateTotals();
+}
+function gatherItems(){
+  const rows=[...document.querySelectorAll("#invTable tbody tr")];
+  return rows.map(r=>{
+    const d=r.querySelector(".inv-desc").value.trim();
+    const q=parseFloat(r.querySelector(".inv-qty").value||0);
+    const rt=parseFloat(r.querySelector(".inv-rate").value||0);
+    return {desc:d, qty:q, rate:rt, amount:q*rt};
+  });
+}
+function updateTotals(){
+  const items=gatherItems(); let sub=0; items.forEach(i=>sub+=i.amount);
+  const taxPct=parseFloat(invTaxPct.value||0)/100;
+  const tax=sub*taxPct;
+  const total=sub+tax;
+  const depPct=parseFloat(invDepPct.value||0)/100;
+  const deposit=total*depPct;
+  const due=total-deposit;
+  document.querySelectorAll(".inv-amt").forEach((cell,i)=>{ cell.textContent="$"+money(items[i].amount||0); });
+  invTotals.innerHTML = `<div class="row">
+    <div><strong>Subtotal:</strong> $${money(sub)}</div>
+    <div><strong>Tax:</strong> $${money(tax)}</div>
+    <div><strong>Total:</strong> $${money(total)}</div>
+    <div><strong>Deposit (${(depPct*100).toFixed(0)}%):</strong> $${money(deposit)}</div>
+    <div><strong>Balance Due:</strong> $${money(due)}</div>
+  </div>`;
+  return {sub,tax,total,deposit,due,depPct};
+}
+function saveInvoice(){
+  const t=updateTotals();
+  const inv={
+    id:uid(),
+    number:invNumber.value.trim()||("INV-"+Date.now()),
+    date:invDate.value||new Date().toISOString().slice(0,10),
+    due:invDue.value||"",
+    clientId:invClient.value||"",
+    project:invProject.value.trim(),
+    items:gatherItems(),
+    taxPct:parseFloat(invTaxPct.value||0),
+    depPct:parseFloat(invDepPct.value||0),
+    totals:t
+  };
+  state.invoices.push(inv); save(); alert("Invoice saved.");
+}
+function openInvoice(){
+  const t=updateTotals();
+  const number=invNumber.value.trim()||("INV-"+Date.now());
+  const date=invDate.value||new Date().toISOString().slice(0,10);
+  const due=invDue.value||"";
+  const client=state.clients.find(c=>c.id===invClient.value)||{name:"",address:"",email:"",phone:""};
+  const items=gatherItems();
+  const rows=items.map(i=>`<tr><td>${i.desc}</td><td class="mono">${i.qty}</td><td class="mono">$${money(i.rate)}</td><td class="mono">$${money(i.amount)}</td></tr>`).join("");
+  const payBase=state.settings.payment_base||"";
+  const amount = t.deposit; // collect deposit
+  const payUrl = payBase ? `${payBase}?invoice=${encodeURIComponent(number)}&amount=${encodeURIComponent(amount.toFixed(2))}` : "";
+  const qrSrc = payUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payUrl)}` : "";
+  const w=window.open(""); const d=w.document;
+  const html=`<html><head><title>Invoice ${number}</title>
+  <style>body{font-family:system-ui,Segoe UI,Roboto,Arial;padding:20px} h1{margin:0 0 6px} table{width:100%;border-collapse:collapse} th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left} .mono{font-variant-numeric:tabular-nums}</style></head><body>
+  <h1>${state.settings.logo}</h1>
+  <h2>Invoice ${number}</h2>
+  <p><strong>Date:</strong> ${date} &nbsp; <strong>Due:</strong> ${due||"-"}</p>
+  <p><strong>Bill To:</strong><br>${client.name||"-"}<br>${client.address||""}<br>${client.email||""} • ${client.phone||""}</p>
+  <p><strong>Project:</strong> ${invProject.value||"-"}</p>
+  <table><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table>
+  <p class="mono"><strong>Subtotal:</strong> $${money(t.sub)}<br><strong>Tax:</strong> $${money(t.tax)}<br><strong>Total:</strong> $${money(t.total)}<br><strong>Deposit (${(t.depPct*100).toFixed(0)}%):</strong> $${money(t.deposit)}<br><strong>Balance Due:</strong> $${money(t.due)}</p>
+  ${payUrl ? `<div style="margin-top:16px"><h3>Pay Deposit</h3><p class="mono">${payUrl}</p><img src="${qrSrc}" alt="QR to pay" style="border:1px solid #ddd;border-radius:6px"></div>` : `<p><em>Add a Payment Link Base in Settings to enable QR.</em></p>`}
+  <p style="margin-top:20px" class="muted">Print → Save as PDF</p>
+  </body></html>`;
+  d.write(html); d.close(); w.focus(); setTimeout(()=>w.print(), 500);
+}
+
+// --- Settings ---
+function saveSettings(){
+  state.settings.crewDefault=document.getElementById("setCrew").value || state.settings.crewDefault;
+  state.settings.wages=document.getElementById("setWages").value || state.settings.wages;
+  state.settings.phones=document.getElementById("setPhones").value || state.settings.phones;
+  state.settings.logo=document.getElementById("setLogo").value || state.settings.logo;
+  state.settings.payment_base=document.getElementById("setPayBase").value || state.settings.payment_base;
+  state.settings.email=document.getElementById("setEmail").value || state.settings.email;
+  save(); alert("Settings saved");
+}
+function renderSettings(){
+  setCrew.value=state.settings.crewDefault;
+  setWages.value=state.settings.wages;
+  setPhones.value=state.settings.phones;
+  setLogo.value=state.settings.logo;
+  setPayBase.value=state.settings.payment_base||"";
+  setEmail.value=state.settings.email||"";
+}
+
+// --- Export / Import ---
+function exportJSON(){ const data=JSON.stringify(state,null,2); download("scenic_roots_field_data_v5.json", data, "application/json"); }
+function exportCSV(){
+  const lines=["Job Name,Address,Type,Status,Crew,Tasks Done/Total,Notes,Start,Finish"];
+  state.jobs.forEach(j=>{ const done=j.tasks.filter(t=>t.done).length+"/"+j.tasks.length; lines.push([j.name,j.address,prettyType(j.type),prettyStatus(j.status),j.crew,done,(j.notes||"").replaceAll(",",";"),j.start||"",j.finish||""].join(",")); });
+  download("jobs_export_v5.csv", lines.join("\n"), "text/csv");
+}
+function download(filename, data, type){ const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([data],{type})); a.download=filename; a.click(); }
+document.getElementById("importFile").addEventListener("change", async (e)=>{ const file=e.target.files[0]; if(!file) return; const text=await file.text(); try{ const obj=JSON.parse(text); state.clients=obj.clients||state.clients; state.jobs=obj.jobs||state.jobs; state.settings=obj.settings||state.settings; state.pickList=obj.pickList||state.pickList||[]; state.clientMode=obj.clientMode||false; state.proposal=obj.proposal||{}; state.invoices=obj.invoices||state.invoices; save(); alert("Imported successfully."); }catch(err){ alert("Invalid file."); } });
+
+// --- Helpers ---
+function render(){ renderClients(); renderJobs(); if(state.activeJobId) renderActiveJob(); renderSettings(); document.getElementById("year").textContent=new Date().getFullYear(); document.getElementById("clientMode").checked=state.clientMode; if(document.getElementById("pickList")) renderPickList(); }
+load(); buildTabs(); render();
+</script>
+</body>
+</html>
