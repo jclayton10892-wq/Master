@@ -1,0 +1,24 @@
+{
+  "default_overhead_pct": 0.15,
+  "default_profit_pct": 0.25,
+  "members": [
+    {
+      "id": "lead1",
+      "name": "Lead",
+      "rate": 20,
+      "role": "Lead"
+    },
+    {
+      "id": "exp1",
+      "name": "Experienced Hand",
+      "rate": 20,
+      "role": "Experienced"
+    },
+    {
+      "id": "helper1",
+      "name": "Helper",
+      "rate": 15,
+      "role": "Helper"
+    }
+  ]
+}
